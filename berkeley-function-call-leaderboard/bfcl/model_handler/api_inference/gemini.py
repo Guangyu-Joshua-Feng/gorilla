@@ -25,7 +25,7 @@ from vertexai.generative_models import (
     Tool,
 )
 
-
+# Google Uses Vertex AI to manage its API calls. 
 class GeminiHandler(BaseHandler):
     def __init__(self, model_name, temperature) -> None:
         super().__init__(model_name, temperature)
