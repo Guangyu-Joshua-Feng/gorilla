@@ -35,8 +35,11 @@ class GeminiHandler(BaseHandler):
             project=os.getenv("VERTEX_AI_PROJECT_ID"),
             location=os.getenv("VERTEX_AI_LOCATION"),
         )
-        self.client = GenerativeModel(self.model_name.replace("-FC", ""))
+        self.client = GenerativeModel(self.model_name.replace("-FC", "")) # Create a model using the bare-bone model name.
 
+    '''
+    Vertex AI expects roles user, model, and function (not assistant or tool), so this helper remaps them in the prompt accordingly
+    '''
     @staticmethod
     def _substitute_prompt_role(prompts: list[dict]) -> list[dict]:
         # Allowed roles: user, model, function
@@ -59,11 +62,12 @@ class GeminiHandler(BaseHandler):
                 result = [result]
             return result
 
+    
     def decode_execute(self, result):
         if "FC" not in self.model_name:
             result = result.replace("```tool_code\n", "").replace("\n```", "")
             return default_decode_execute_prompting(result)
-        else:
+        else: # for FC models, builds a list of function-call strings like foo(a=1,b='x')
             func_call_list = []
             for function_call in result:
                 for func_name, func_args in function_call.items():
@@ -82,6 +86,14 @@ class GeminiHandler(BaseHandler):
 
     #### FC methods ####
 
+    '''
+    FC Pipeline #3: 
+    Call Model API
+        - Extract all the tools from the inference_data object so they will be passed into the model call later
+        - Generate inference_data["inference_input_log"] from other fields of the object to log the data (not passed into model)
+        - Reinitialize model if user input involves system prompts. 
+        - add model, msg, config, and tools into the API model inference call
+    '''
     def _query_FC(self, inference_data: dict):
         # Gemini models needs to first conver the function doc to FunctionDeclaration and Tools objects.
         # We do it here to avoid json serialization issues.
@@ -126,6 +138,16 @@ class GeminiHandler(BaseHandler):
             tools=tools,
         )
 
+    '''
+    FC pipeline #1: 
+    Preprocess the testset entry before sending it to the model. 
+    inference_data dictionary serves as a centralized data structure that accumulates and manages all necessary information throughout the model inference process.
+
+    Steps: 
+    - Update prompt's roles in Json.
+    - Extracts any system prompt from the first user message.
+    - Initializes an empty message list.
+    '''
     def _pre_query_processing_FC(self, inference_data: dict, test_entry: dict) -> dict:
 
         for round_idx in range(len(test_entry["question"])):
@@ -140,6 +162,14 @@ class GeminiHandler(BaseHandler):
             inference_data["system_prompt"] = system_prompt
         return inference_data
 
+    '''
+    FC-pipeline #2
+    Prepare Functions in testing Prompts into the form acceptable by models. 
+    Steps:
+        - Convert Functions into format based on language
+        - Oncert functions into format based on the model provider. 
+        - Add tools info into inference_data object. 
+    '''
     def _compile_tools(self, inference_data: dict, test_entry: dict) -> dict:
         functions: list = test_entry["function"]
         test_category: str = test_entry["id"].rsplit("_", 1)[0]
@@ -151,16 +181,32 @@ class GeminiHandler(BaseHandler):
 
         return inference_data
 
+    '''
+    FC-Pipeline Step #4:
+        - Parse the json response into function name with arguments, just function names, and just text
+        Input of Json API Response: 
+        [
+            { "function_call": { "name": "get_weather", "args": {"city": "Seattle"} } },
+            { "text": "Here’s what I found." }
+        ]
+        Output of the Parsed result: 
+        fc_parts = [{"get_weather": {"city": "Seattle"}}]
+        tool_call_func_names = ["get_weather"]
+        text_parts = ["Here’s what I found."]
+        The output will be wrapped into forming the return objects. 
+    '''
     def _parse_query_response_FC(self, api_response: any) -> dict:
-        tool_call_func_names = []
-        fc_parts = []
-        text_parts = []
+        tool_call_func_names = [] # tracks just the function names (e.g., ["get_weather"])
+        fc_parts = [] # a list of { function name: function args } mappings
+        text_parts = [] # the text of the return value
 
         if (
             len(api_response.candidates) > 0
             and len(api_response.candidates[0].content.parts) > 0
-        ):
+        ):  
+            # Select only the best model response
             response_function_call_content = api_response.candidates[0].content
+
 
             for part in api_response.candidates[0].content.parts:
                 # part.function_call is a FunctionCall object, so it will always be True even if it contains no function call
@@ -185,13 +231,20 @@ class GeminiHandler(BaseHandler):
         model_responses = fc_parts if fc_parts else text_parts
 
         return {
-            "model_responses": model_responses,
-            "model_responses_message_for_chat_history": response_function_call_content,
-            "tool_call_func_names": tool_call_func_names,
-            "input_token": api_response.usage_metadata.prompt_token_count,
-            "output_token": api_response.usage_metadata.candidates_token_count,
+            "model_responses": model_responses, # function along with argument (if function exists), otherwise just text resposne
+            "model_responses_message_for_chat_history": response_function_call_content, # whole API best resonsse
+            "tool_call_func_names": tool_call_func_names, # just functio names
+            "input_token": api_response.usage_metadata.prompt_token_count, # number of token
+            "output_token": api_response.usage_metadata.candidates_token_count, # # number of token
         }
+    '''
+    FC-Pipeline Step #5: Multi-turn context update
+    These methods below simply append the right kind of Content(...) to inference_data["message"] at each step
+    '''
 
+    '''
+    Add a user’s JSON message of the turn into a inference_data["message"]
+    '''
     def add_first_turn_message_FC(
         self, inference_data: dict, first_turn_message: list[dict]
     ) -> dict:
@@ -206,6 +259,9 @@ class GeminiHandler(BaseHandler):
             )
         return inference_data
 
+    '''
+    Add a user’s JSON message of the turn into a inference_data["message"]
+    '''
     def _add_next_turn_user_message_FC(
         self, inference_data: dict, user_message: list[dict]
     ) -> dict:
@@ -218,7 +274,9 @@ class GeminiHandler(BaseHandler):
             model_response_data["model_responses_message_for_chat_history"]
         )
         return inference_data
-
+    '''
+    Add the execution results to the chat history to prepare for the next turn of query.
+    '''
     def _add_execution_results_FC(
         self,
         inference_data: dict,
@@ -325,6 +383,9 @@ class GeminiHandler(BaseHandler):
     ) -> dict:
         return self.add_first_turn_message_prompting(inference_data, user_message)
 
+    '''
+    Adding model generated text into the model context
+    '''
     def _add_assistant_message_prompting(
         self, inference_data: dict, model_response_data: dict
     ) -> dict:
@@ -338,6 +399,9 @@ class GeminiHandler(BaseHandler):
         )
         return inference_data
 
+    '''
+    Adding tool execution result into the model context
+    '''
     def _add_execution_results_prompting(
         self, inference_data: dict, execution_results: list[str], model_response_data: dict
     ) -> dict:
