@@ -62,7 +62,12 @@ def get_args():
 
     return args
 
-
+'''
+Instantiate the handler corresponding to the model. 
+MODEL_CONFIG_MAPPING[model_name] -> returns the config
+MODEL_CONFIG_MAPPING[model_name].model_handler -> returns the handler class name (eg: gemini handler)
+MODEL_CONFIG_MAPPING[model_name].model_handler(model_name, temperature) -> handler(model_name, temp)
+'''
 def build_handler(model_name, temperature):
     handler = MODEL_CONFIG_MAPPING[model_name].model_handler(model_name, temperature)
     return handler

@@ -183,7 +183,7 @@ def is_empty_output(decoded_output):
         return True
     return False
 
-
+'''Takes the test category arguments and returns the name of the test files containing all test entries'''
 def parse_test_category_argument(test_category_args):
     test_name_total = set()
     test_filename_total = set()
