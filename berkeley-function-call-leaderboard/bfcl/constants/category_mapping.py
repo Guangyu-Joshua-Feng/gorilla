@@ -18,6 +18,7 @@ TEST_FILE_MAPPING = {
     # "rest": f"{VERSION_PREFIX}_rest.json",
     # "sql": f"{VERSION_PREFIX}_sql.json",
     # "chatable": f"{VERSION_PREFIX}_chatable.json",
+    "custom": f"{VERSION_PREFIX}_custom.json",
 
     # V2 Live Datasets
     "live_simple": f"{VERSION_PREFIX}_live_simple.json",
