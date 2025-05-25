@@ -4,53 +4,61 @@
         [
             {
                 "role": "user",
-                "content": "Find the sum of all the multiples of 3 and 5 between 1 and 1000. Also find the product of the first five prime numbers."
+                "content": "Now is 7am. will it be warm when I get to work"
             }
         ]
     ],
     "function": [
         {
-            "name": "math_toolkit.sum_of_multiples",
-            "description": "Find the sum of all multiples of specified numbers within a specified range.",
+            "name": "get_weather",
+            "description": "returns the temperature of a specific location at a specific time",
             "parameters": {
                 "type": "dict",
                 "properties": {
-                    "lower_limit": {
-                        "type": "integer",
-                        "description": "The start of the range (inclusive)."
+                    "location": {
+                        "type": "string",
+                        "description": "The location where weather is queried."
                     },
-                    "upper_limit": {
-                        "type": "integer",
-                        "description": "The end of the range (inclusive)."
-                    },
-                    "multiples": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "description": "The numbers to find multiples of."
+                    "time": {
+                        "type": "string",
+                        "description": "the time the weather forecast for."
                     }
                 },
                 "required": [
-                    "lower_limit",
-                    "upper_limit",
-                    "multiples"
+                    "location",
+                    "time"
                 ]
             }
         },
         {
-            "name": "math_toolkit.product_of_primes",
-            "description": "Find the product of the first n prime numbers.",
+            "name": "get_location",
+            "description": "get user’s location at a specific time from user's calendar.",
             "parameters": {
                 "type": "dict",
                 "properties": {
-                    "count": {
-                        "type": "integer",
-                        "description": "The number of prime numbers to multiply together."
+                    "time": {
+                        "type": "string",
+                        "description": "The time for which to retrieve the user’s calendar-based location."
                     }
                 },
                 "required": [
-                    "count"
+                    "time"
+                ]
+            }
+        },
+        {
+            "name": "get_work_time",
+            "description": "get the time when the user gets to work.",
+            "parameters": {
+                "type": "dict",
+                "properties": {
+                    "dummy": {
+                        "type": "boolean",
+                        "description": "Always put true. A dummy variable."
+                    }
+                },
+                "required": [
+                    "dummy"
                 ]
             }
         }
