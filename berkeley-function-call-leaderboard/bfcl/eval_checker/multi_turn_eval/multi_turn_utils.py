@@ -4,6 +4,7 @@ import json
 import re
 import copy
 
+# Path Leading to Each Class Storing Function Body
 CLASS_FILE_PATH_MAPPING = {
     "GorillaFileSystem": "bfcl.eval_checker.multi_turn_eval.func_source_code.gorilla_file_system",
     "MathAPI": "bfcl.eval_checker.multi_turn_eval.func_source_code.math_api",
@@ -38,16 +39,25 @@ def execute_multi_turn_func_call(
 
     class_method_name_mapping = {}
     involved_instances = {}
+
+    # For each test case has several corresponding classes in the test doc. We instantiate (or reuse) one object per class. Each object carries all the methods (and any persistent state) that the test case can invoke across turns. 
     for class_name in involved_classes:
+        # load the class in relative path into module_name
         module_name = CLASS_FILE_PATH_MAPPING[class_name]
         # TODO: Handler the model name issue from handler more elegantly
+        
+        # The class' object for each test case has to be named in a way s.t. it's unique. 
         instance_name = (
             f"{model_name.replace('-', '_').replace('.', '_').replace('/', '_')}_{test_entry_id}_{class_name.lower()}_instance"
         )
-        if instance_name not in globals():
+        # globals() returns a dictionary representing the current global symbol table.
+        if instance_name not in globals(): #i.e. the instance doesn't exist
+            # 2a. Dynamically import and instantiate a class instance
             module = importlib.import_module(module_name)
             class_ = getattr(module, class_name)
             class_instance = class_()
+            
+            # 2b. If this class holds state, load its initial config
             if class_name not in STATELESS_CLASSES:
                 class_initial_config = initial_config.get(class_name, {})
                 # Deep copy the initial configuration to avoid mutation issues
@@ -57,11 +67,13 @@ def execute_multi_turn_func_call(
             globals()[instance_name] = class_instance
         # This happens in subsequent turns
         else:
+            # 2c. Reuse the existing instance object from a prior turn
             class_instance = globals()[instance_name]
 
-        involved_instances[class_name] = class_instance
+        involved_instances[class_name] = class_instance # store the instance into the dict
 
         # Retrieve all method names and map them to the instance
+        # 2d. class_method_name_mapping map every public method name to the name of its correspondence instance
         for method_name, method in inspect.getmembers(
             class_instance, predicate=inspect.ismethod
         ):
@@ -73,15 +85,19 @@ def execute_multi_turn_func_call(
     execution_results = []
     for func_call in func_call_list:
         # Add the instance name to the method calls
+        # 3a. Rewrite “method(args)” → “<instance>.method(args)”
         func_call = _process_method_calls(func_call, class_method_name_mapping)
 
         # Evaluate the function call
         try:
             # We need to make a copy here because otherwise the `eval(func_call)` would error. 
             func_call_copy = func_call
+            
             # Before calling `eval`, we need to make sure that the function call is safe
             # We do so by checking if the function is `kill` or `exit`, etc.
             # Extract the function name first
+            # 3b. Sanitize — block dangerous names like kill/exit/run
+
             if "(" in func_call_copy:
                 func_call_copy = func_call_copy.split("(")[0]
             # Situation where the function call is a method call
@@ -90,8 +106,12 @@ def execute_multi_turn_func_call(
             if func_call_copy in ["kill", "exit", "quit", "remove", "unlink", "popen", "Popen", "run"]:
                 raise Exception(f"Function call {func_call_copy} is not allowed.")
 
+            # 3c. `eval` the call in our namespace
+            # The built‑in eval function takes a Python expression (not a full suite of statements) and evaluates it in optionally supplied global and local namespaces.
             func_call_result = eval(func_call)
 
+            # 3d. Convert result to a string or JSON‐dump and append to execution_results
+            # execution_results is a list of the stringified outputs (or error messages) for each turn.
             if type(func_call_result) == str:
                 pass
             elif type(func_call_result) == dict:
