@@ -33,6 +33,7 @@ TEST_FILE_MAPPING = {
     "multi_turn_miss_func": f"{VERSION_PREFIX}_multi_turn_miss_func.json",
     "multi_turn_miss_param": f"{VERSION_PREFIX}_multi_turn_miss_param.json",
     "multi_turn_long_context": f"{VERSION_PREFIX}_multi_turn_long_context.json",
+    "multi_turn_custom": f"{VERSION_PREFIX}_multi_turn_custom.json",
     # "multi_turn_composite": f"{VERSION_PREFIX}_multi_turn_composite.json",
 }
 
@@ -137,4 +138,5 @@ MULTI_TURN_FUNC_DOC_FILE_MAPPING = {
     "TradingBot": "trading_bot.json",
     "TravelAPI": "travel_booking.json",
     "VehicleControlAPI": "vehicle_control.json",
+    "DailyContext": "daily_context.json",
 }
