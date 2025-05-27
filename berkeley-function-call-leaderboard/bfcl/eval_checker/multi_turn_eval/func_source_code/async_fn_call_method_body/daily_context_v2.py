@@ -1,5 +1,5 @@
 import math
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Any, Union
 from concurrent.futures import Future, ThreadPoolExecutor
 import uuid
 
@@ -41,15 +41,15 @@ class DailyContext:
         except Exception as e:
             return {"error": str(e)}
     
-    def get_temperature_future(self, future_id: str) -> Dict[str, float]:
-        fut = self._registry.get(future_id)
-        if fut is None:
-            return {"error": "Unknown future_id"}
-        try:
-            result = fut.result()        # blocks until done
-            return result                # e.g. {"result": 42}
-        except Exception as e:
-            return {"error": str(e)}
+    # def get_temperature_future(self, future_id: str) -> Dict[str, float]:
+    #     fut = self._registry.get(future_id)
+    #     if fut is None:
+    #         return {"error": "Unknown future_id"}
+    #     try:
+    #         result = fut.result()        # blocks until done
+    #         return result                # e.g. {"result": 42}
+    #     except Exception as e:
+    #         return {"error": str(e)}
         
     def get_location(
             self, time: str
@@ -72,7 +72,7 @@ class DailyContext:
         except Exception as e:
             return {"error": str(e)}
     
-    def get_location_future(self, future_id: str) -> Dict[str, str]:
+    def get_future(self, future_id: str) -> Dict[str, Union[str, float]]:
         fut = self._registry.get(future_id)
         if fut is None:
             return {"error": "Unknown future_id"}
@@ -81,6 +81,16 @@ class DailyContext:
             return result                # e.g. {"result": 42}
         except Exception as e:
             return {"error": str(e)}
+        
+    # def get_location_future(self, future_id: str) -> Dict[str, str]:
+    #     fut = self._registry.get(future_id)
+    #     if fut is None:
+    #         return {"error": "Unknown future_id"}
+    #     try:
+    #         result = fut.result()        # blocks until done
+    #         return result                # e.g. {"result": 42}
+    #     except Exception as e:
+    #         return {"error": str(e)}
     
     def get_work_time(self, dummy: bool) -> Dict[str, str]:
         try:
