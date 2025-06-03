@@ -1,0 +1,1 @@
+{ "id": "multi_turn_custom_0", "question": [ [ { "role": "user", "content": "will it be warmer when I get to work?" } ] ], "initial_config": { "DailyContext": {} }, "path": [], "involved_classes": [ "DailyContext" ] }
