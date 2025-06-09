@@ -7,7 +7,7 @@ from bfcl.model_handler.api_inference.databricks import DatabricksHandler
 from bfcl.model_handler.api_inference.deepseek import DeepSeekAPIHandler
 from bfcl.model_handler.api_inference.fireworks import FireworksHandler
 from bfcl.model_handler.api_inference.functionary import FunctionaryHandler
-from bfcl.model_handler.api_inference.gemini import GeminiHandler
+from bfcl.model_handler.api_inference.gemini import create_gemini_handler
 from bfcl.model_handler.api_inference.gogoagent import GoGoAgentHandler
 from bfcl.model_handler.api_inference.gorilla import GorillaHandler
 from bfcl.model_handler.api_inference.grok import GrokHandler
@@ -580,7 +580,7 @@ api_inference_model_map = {
         url="https://deepmind.google/technologies/gemini/flash-lite/",
         org="Google",
         license="Proprietary",
-        model_handler=GeminiHandler,
+        model_handler=create_gemini_handler,
         input_price=0.075,
         output_price=0.3,
         is_fc_model=True,
@@ -592,7 +592,7 @@ api_inference_model_map = {
         url="https://deepmind.google/technologies/gemini/flash-lite/",
         org="Google",
         license="Proprietary",
-        model_handler=GeminiHandler,
+        model_handler=create_gemini_handler,
         input_price=0.075,
         output_price=0.3,
         is_fc_model=False,
@@ -604,7 +604,7 @@ api_inference_model_map = {
         url="https://deepmind.google/technologies/gemini/flash/",
         org="Google",
         license="Proprietary",
-        model_handler=GeminiHandler,
+        model_handler=create_gemini_handler,
         input_price=0.15,
         output_price=0.6,
         is_fc_model=True,
@@ -616,7 +616,7 @@ api_inference_model_map = {
         url="https://deepmind.google/technologies/gemini/flash/",
         org="Google",
         license="Proprietary",
-        model_handler=GeminiHandler,
+        model_handler=create_gemini_handler,
         input_price=0.15,
         output_price=0.6,
         is_fc_model=False,
@@ -628,7 +628,7 @@ api_inference_model_map = {
         url="https://deepmind.google/technologies/gemini/pro/",
         org="Google",
         license="Proprietary",
-        model_handler=GeminiHandler,
+        model_handler=create_gemini_handler,
         input_price=0,
         output_price=0,
         is_fc_model=True,
@@ -640,7 +640,7 @@ api_inference_model_map = {
         url="https://deepmind.google/technologies/gemini/pro/",
         org="Google",
         license="Proprietary",
-        model_handler=GeminiHandler,
+        model_handler=create_gemini_handler,
         input_price=0,
         output_price=0,
         is_fc_model=False,
@@ -652,7 +652,7 @@ api_inference_model_map = {
         url="https://deepmind.google/technologies/gemini/flash-thinking/",
         org="Google",
         license="Proprietary",
-        model_handler=GeminiHandler,
+        model_handler=create_gemini_handler,
         input_price=0,
         output_price=0,
         is_fc_model=False,
