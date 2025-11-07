@@ -237,7 +237,7 @@ class TwitterAPI:
 
         return self.tweets[tweet_id]
 
-    def get_user_tweets(self, username: str) -> List[Dict[str, Union[int, str, List[str]]]]:
+    def get_user_tweets(self, username: str) -> Dict[str, List[Dict[str, Union[int, str, List[str]]]]]:
         """
         Retrieve all tweets from a specific user.
 
@@ -251,9 +251,10 @@ class TwitterAPI:
                 - tags (List[str]): List of tags associated with the tweet.
                 - mentions (List[str]): List of users mentioned in the tweet.
         """
-        return [tweet for tweet in self.tweets.values() if tweet["username"] == username]
+        tweets = [tweet for tweet in self.tweets.values() if tweet["username"] == username]
+        return {"user_tweets": tweets}
 
-    def search_tweets(self, keyword: str) -> List[Dict[str, Union[int, str, List[str]]]]:
+    def search_tweets(self, keyword: str) -> Dict[str, List[Dict[str, Union[int, str, List[str]]]]]:
         """
         Search for tweets containing a specific keyword.
 
@@ -267,14 +268,14 @@ class TwitterAPI:
                 - tags (List[str]): List of tags associated with the tweet.
                 - mentions (List[str]): List of users mentioned in the tweet.
         """
-        return [
-            tweet
-            for tweet in self.tweets.values()
+        matches = [
+            tweet for tweet in self.tweets.values()
             if keyword.lower() in tweet["content"].lower()
-            or keyword.lower() in [tag.lower() for tag in tweet["tags"]]
+            or any(keyword.lower() in tag.lower() for tag in tweet["tags"])
         ]
+        return {"matching_tweets": matches}
 
-    def get_tweet_comments(self, tweet_id: int) -> List[Dict[str, str]]:
+    def get_tweet_comments(self, tweet_id: int) -> Dict[str, List[Dict[str, str]]]:
         """
         Retrieve all comments for a specific tweet.
 
@@ -287,7 +288,7 @@ class TwitterAPI:
         """
         if tweet_id not in self.tweets:
             return {"error": f"Tweet with ID {tweet_id} not found."}
-        return self.comments.get(tweet_id, [])
+        return {"comments": self.comments.get(tweet_id, [])}
 
     def get_user_stats(self, username: str) -> Dict[str, int]:
         """

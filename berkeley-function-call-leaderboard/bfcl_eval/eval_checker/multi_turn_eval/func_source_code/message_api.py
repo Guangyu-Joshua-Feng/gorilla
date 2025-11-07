@@ -141,7 +141,7 @@ class MessageAPI:
 
     def message_login(self, user_id: str) -> Dict[str, Union[str, bool]]:
         """
-        Log in a user with the given user ID to messeage application.
+        Log in a user with the given user ID to message application.
 
         Args:
             user_id (str): User ID of the user to log in.
@@ -185,7 +185,7 @@ class MessageAPI:
         if receiver_id not in self.user_map.values():
             return {"error": f"Receiver ID '{receiver_id}' not found."}
         # Generate a unique message ID
-        message_id = self._generate_id()
+        message_id = self._generate_id()["new_id"]
         # Store the message in the inbox
         self.inbox.append({receiver_id: message})
         self.message_count += 1

@@ -30,7 +30,7 @@ class MathAPI:
             # Use mpmath for high-precision logarithmic calculations
             result = mpmath.log(value) / mpmath.log(base)
 
-            return {"result": result}
+            return {"result": float(result)}
         except Exception as e:
             return {"error": str(e)}
 
@@ -47,7 +47,7 @@ class MathAPI:
         if not numbers:
             return {"error": "Cannot calculate mean of an empty list"}
         try:
-            return {"result": sum(numbers) / len(numbers)}
+            return {"result": float(sum(numbers) / len(numbers))}
         except TypeError:
             return {"error": "All elements in the list must be numbers"}
 
@@ -98,7 +98,7 @@ class MathAPI:
         try:
             value_in_meters = value * to_meters[unit_in]
             result = value_in_meters * from_meters[unit_out]
-            return {"result": result}
+            return {"result": float(result)}
         except OverflowError:
             return {"error": "Conversion resulted in a value too large to represent"}
 
@@ -135,7 +135,7 @@ class MathAPI:
             return {"error": "Value must be a number"}
 
         if unit_in == unit_out:
-            return {"result": value}
+            return {"result": float(value)}
 
         conversion_key = f"{unit_in}_to_{unit_out}"
         if conversion_key not in conversion:
@@ -151,7 +151,7 @@ class MathAPI:
             else:
                 result = value * conversion[conversion_key]
 
-            return {"result": result}
+            return {"result": float(result)}
         except OverflowError:
             return {"error": "Conversion resulted in a value too large to represent"}
 
@@ -167,7 +167,7 @@ class MathAPI:
             result (float): Sum of the two numbers.
         """
         try:
-            return {"result": a + b}
+            return {"result": float(a + b)}
         except TypeError:
             return {"error": "Both inputs must be numbers"}
 
@@ -183,7 +183,7 @@ class MathAPI:
             result (float): Difference between the two numbers.
         """
         try:
-            return {"result": a - b}
+            return {"result": float(a - b)}
         except TypeError:
             return {"error": "Both inputs must be numbers"}
 
@@ -202,7 +202,7 @@ class MathAPI:
             return {"error": "Both inputs must be numbers"}
 
         try:
-            return {"result": a * b}
+            return {"result": float(a * b)}
         except TypeError:
             return {"error": "Both inputs must be numbers"}
 
@@ -220,7 +220,7 @@ class MathAPI:
         try:
             if b == 0:
                 return {"error": "Cannot divide by zero"}
-            return {"result": a / b}
+            return {"result": float(a / b)}
         except TypeError:
             return {"error": "Both inputs must be numbers"}
 
@@ -236,7 +236,7 @@ class MathAPI:
             result (float): The base raised to the power of the exponent.
         """
         try:
-            return {"result": base**exponent}
+            return {"result": float(base**exponent)}
         except TypeError:
             return {"error": "Both inputs must be numbers"}
 
@@ -262,7 +262,7 @@ class MathAPI:
             decimal_number = Decimal(number)
 
             result = decimal_number.sqrt()
-            return {"result": result}
+            return {"result": float(result)}
         except (TypeError, InvalidOperation):
             return {
                 "error": "Input must be a number or computation resulted in an invalid operation"
@@ -279,7 +279,7 @@ class MathAPI:
             result (float): The absolute value of the number.
         """
         try:
-            return {"result": abs(number)}
+            return {"result": float(abs(number))}
         except TypeError:
             return {"error": "Input must be a number"}
 
@@ -297,7 +297,7 @@ class MathAPI:
             result (float): The rounded number.
         """
         try:
-            return {"result": round(number, decimal_places)}
+            return {"result": float(round(number, decimal_places))}
         except TypeError:
             return {
                 "error": "First input must be a number, second input must be an integer"
@@ -334,7 +334,7 @@ class MathAPI:
         if not numbers:
             return {"error": "Cannot find minimum of an empty list"}
         try:
-            return {"result": min(numbers)}
+            return {"result": float(min(numbers))}
         except TypeError:
             return {"error": "All elements in the list must be numbers"}
 
@@ -351,7 +351,7 @@ class MathAPI:
         if not numbers:
             return {"error": "Cannot find maximum of an empty list"}
         try:
-            return {"result": max(numbers)}
+            return {"result": float(max(numbers))}
         except TypeError:
             return {"error": "All elements in the list must be numbers"}
 
@@ -368,6 +368,6 @@ class MathAPI:
         if not numbers:
             return {"error": "Cannot calculate sum of an empty list"}
         try:
-            return {"result": sum(numbers)}
+            return {"result": float(sum(numbers))}
         except TypeError:
             return {"error": "All elements in the list must be numbers"}

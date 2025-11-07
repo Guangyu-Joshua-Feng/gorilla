@@ -206,7 +206,7 @@ class TravelAPI:
             return {"error": "Token expired"}
         if access_token != self.access_token:
             return {"error": "Invalid access token"}
-        if card_number in self.credit_card_list:
+        if any(info.get("card_number") == card_number for info in self.credit_card_list.values()):
             return {"error": "Card already registered"}
         card_id = str(self._random.randint(100000000000, 999999999999))  # 12 digits
         self.credit_card_list[card_id] = {
@@ -503,7 +503,7 @@ class TravelAPI:
         if "balance" not in self.credit_card_list[card_id]:
             return {"booking_status": False, "error": "Balance not found"}
 
-        all_airports = self.list_all_airports()
+        all_airports = self.list_all_airports()["airports"]
         if travel_from not in all_airports:
             return {
                 "booking_status": False,
@@ -572,11 +572,15 @@ class TravelAPI:
             "transaction_id": transaction_id,
         }
         if self.long_context:
+            filtered = {}
+            allow = {"transaction_id","travel_date","travel_from","travel_to","travel_class","travel_cost"}
+            for bid, rec in self.booking_record.items():
+                filtered[bid] = {k: rec[k] for k in allow if k in rec}
             return {
                 "booking_id": booking_id,
                 "transaction_id": transaction_id,
                 "booking_status": True,
-                "booking_history": self.booking_record,
+                "booking_history": filtered,
             }
         return {
             "booking_id": booking_id,
@@ -651,16 +655,19 @@ class TravelAPI:
             return {"error": "Invalid access token"}
 
         # Simply return a copy of the booking records to avoid accidental mutation
-        return {"booking_history": deepcopy(self.booking_record)}
+        allow = {"transaction_id","travel_date","travel_from","travel_to","travel_class","travel_cost"}
+        filtered = { bid: {k: rec[k] for k in allow if k in rec}
+                     for bid, rec in self.booking_record.items() }
+        return {"booking_history": filtered}
 
-    def list_all_airports(self) -> List[str]:
+    def list_all_airports(self) -> Dict[str, List[str]]:
         """
         List all available airports
 
         Returns:
             airports (List[str]): A list of all available airports
         """
-        return [
+        return {"airports": [
             "RMS",
             "SBK",
             "MPC",
@@ -684,7 +691,7 @@ class TravelAPI:
             "JFK",
             "ORD",
             "BOS",
-        ]
+        ]}
 
     def cancel_booking(
         self, access_token: str, booking_id: str
@@ -712,7 +719,7 @@ class TravelAPI:
 
     def compute_exchange_rate(
         self, base_currency: str, target_currency: str, value: float
-    ) -> float:
+    ) -> Dict[str, float]:
         """
         Compute the exchange rate between two currencies
 
@@ -908,7 +915,7 @@ class TravelAPI:
             "customer_support_message": "Thank you for contacting customer support. Your message has been received and we will get back to you shortly."
         }
 
-    def get_all_credit_cards(self) -> Dict[str, Dict[str, Union[str, int, float]]]:
+    def get_all_credit_cards(self) -> Dict[str, Dict[str, Dict[str, Union[str, int, float]]]]:
         """
         Get all registered credit cards
 
@@ -920,4 +927,19 @@ class TravelAPI:
                 - card_verification_value (int): The verification value of the credit card
                 - balance (float): The balance of the credit card
         """
-        return {"credit_card_list": self.credit_card_list}
+        transformed = {}
+        for card_id, info in self.credit_card_list.items():
+            cv = info.get("card_verification_number", info.get("card_verification_value"))
+            try:
+                cv_out = int(cv) if cv is not None else None
+            except (TypeError, ValueError):
+                cv_out = cv
+ 
+            transformed[card_id] = {
+                "card_number": info.get("card_number"),
+                "expiration_date": info.get("expiration_date"),
+                "cardholder_name": info.get("cardholder_name"),
+                "card_verification_value": cv_out,
+                "balance": float(info.get("balance", 0.0)),
+            }
+        return {"credit_card_list": transformed}

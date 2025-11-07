@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional
+from typing import List, Optional, Dict, Union
 
 import numpy as np
 from bfcl_eval.eval_checker.multi_turn_eval.func_source_code.memory_api_metaclass import (
@@ -80,12 +80,13 @@ class MemoryAPI_vector(MemoryAPI):
             )
 
     def _dump_core_memory_to_context(self) -> str:
-        if not self.core_memory:
+        #if not self.core_memory:
+        if not self.core_memory._store:
             return "There is no content in the core memory at this point."
 
         return json.dumps(self.core_memory._store, indent=4)
 
-    def core_memory_add(self, text: str) -> dict[str, str]:
+    def core_memory_add(self, text: str) -> Dict[str, int]:
         """
         Add a new entry to the core memory.
 
@@ -133,7 +134,7 @@ class MemoryAPI_vector(MemoryAPI):
 
     def core_memory_retrieve(
         self, query: str, top_k: Optional[int] = 5
-    ) -> list[dict[str, str]]:
+    ) -> Dict[str, List[Dict[str, Union[int, float, str]]]]:
         """
         Retrieve the most similar entries from the core memory.
 
@@ -147,9 +148,9 @@ class MemoryAPI_vector(MemoryAPI):
                 - similarity_score (float): The similarity score of the entry with respect to the query.
                 - text (str): The text of the entry.
         """
-        return {"result": self.core_memory.retrieve(query, top_k)}
+        return {"results": self.core_memory.retrieve(query, top_k)}
 
-    def core_memory_retrieve_all(self) -> list[dict[str, str]]:
+    def core_memory_retrieve_all(self) -> Dict[str, List[Dict[str, Union[int, str]]]]:
         """
         Retrieve all entries from the core memory.
 
@@ -158,9 +159,9 @@ class MemoryAPI_vector(MemoryAPI):
                 - id (int): The ID of the entry.
                 - text (str): The text of the entry.
         """
-        return {"result": self.core_memory.retrieve_all()}
+        return {"results": self.core_memory.retrieve_all()}
 
-    def archival_memory_add(self, text: str) -> dict[str, str]:
+    def archival_memory_add(self, text: str) -> Dict[str, int]:
         """
         Add a new entry to the archival memory.
 
@@ -208,7 +209,7 @@ class MemoryAPI_vector(MemoryAPI):
 
     def archival_memory_retrieve(
         self, query: str, top_k: Optional[int] = 5
-    ) -> list[dict[str, str]]:
+    ) -> Dict[str, List[Dict[str, Union[int, float, str]]]]:
         """
         Retrieve the most similar entries from the archival memory.
         Args:
@@ -220,9 +221,9 @@ class MemoryAPI_vector(MemoryAPI):
                 - similarity_score (float): The similarity score of the entry with respect to the query.
                 - text (str): The text of the entry.
         """
-        return {"result": self.archival_memory.retrieve(query, top_k)}
+        return {"results": self.archival_memory.retrieve(query, top_k)}
 
-    def archival_memory_retrieve_all(self) -> list[dict[str, str]]:
+    def archival_memory_retrieve_all(self) -> Dict[str, List[Dict[str, Union[int, str]]]]:
         """
         Retrieve all entries from the archival memory.
 
@@ -231,7 +232,7 @@ class MemoryAPI_vector(MemoryAPI):
                 - id (int): The ID of the entry.
                 - text (str): The text of the entry.
         """
-        return {"result": self.archival_memory.retrieve_all()}
+        return {"results": self.archival_memory.retrieve_all()}
 
 
 class VectorStore:

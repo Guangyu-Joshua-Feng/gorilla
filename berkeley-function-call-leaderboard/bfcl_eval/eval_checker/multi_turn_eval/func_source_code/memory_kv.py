@@ -218,7 +218,11 @@ class MemoryAPI_kv(MemoryAPI):
             key (str): Each key in the short-term memory.
             value (str): The value associated with each key.
         """
-        return self.core_memory
+        # return self.core_memory
+        return {
+            "key": "__all__",
+            "value": json.dumps(self.core_memory, ensure_ascii=False)
+        }
 
     def archival_memory_add(self, key: str, value: str) -> Dict[str, str]:
         """

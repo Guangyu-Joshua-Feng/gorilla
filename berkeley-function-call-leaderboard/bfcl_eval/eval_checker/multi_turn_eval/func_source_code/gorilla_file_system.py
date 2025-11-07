@@ -263,7 +263,7 @@ class GorillaFileSystem:
         """
         path = []
         dir = self._current_dir
-        while dir is not None and dir.name != self.root:
+        while dir is not None and dir is not self.root:
             path.append(dir.name)
             dir = dir.parent
         return {"current_working_directory": "/" + "/".join(reversed(path))}
@@ -308,18 +308,19 @@ class GorillaFileSystem:
         if folder == "..":
             if self._current_dir.parent:
                 self._current_dir = self._current_dir.parent
+                return {"current_working_directory": self.pwd()["current_working_directory"]}
             elif self.root == self._current_dir:
                 return {"error": "Current directory is already the root. Cannot go back."}
             else:
                 return {"error": "cd: ..: No such directory"}
-            return {}
+    
 
         # Handle absolute or relative paths
         target_dir = self._navigate_to_directory(folder)
         if isinstance(target_dir, dict):  # This means there was an error from _navigate_to_directory
             return target_dir
         self._current_dir = target_dir
-        return {"current_working_directory": target_dir.name}
+        return {"current_working_directory": self.pwd()["current_working_directory"]}
 
     def _validate_file_or_directory_name(self, dir_name: str) -> bool:
         if any(c in dir_name for c in '|/\\?%*:"><'):
@@ -341,7 +342,7 @@ class GorillaFileSystem:
             return {"error": f"mkdir: cannot create directory '{dir_name}': File exists"}
 
         self._current_dir._add_directory(dir_name)
-        return None
+        return {}
 
     def touch(self, file_name: str) -> Union[None, Dict[str, str]]:
         """
@@ -357,7 +358,7 @@ class GorillaFileSystem:
             return {"error": f"touch: cannot touch '{file_name}': File exists"}
 
         self._current_dir._add_file(file_name)
-        return None
+        return {}
 
     def echo(
         self, content: str, file_name: Optional[str] = None
@@ -372,6 +373,8 @@ class GorillaFileSystem:
         Returns:
             terminal_output (str): The content if no file name is provided, or None if written to file.
         """
+        if file_name == "None":
+            file_name = None
         if file_name is None:
             return {"terminal_output": content}
         if not self._validate_file_or_directory_name(file_name):
@@ -380,6 +383,7 @@ class GorillaFileSystem:
         if file_name:
             if file_name in self._current_dir.contents:
                 self._current_dir._get_item(file_name)._write(content)
+                return {"terminal_output": ""}
             else:
                 return {"error": f"echo: cannot write to '{file_name}': No such file"}
         else:
@@ -387,7 +391,7 @@ class GorillaFileSystem:
 
     def cat(self, file_name: str) -> Dict[str, str]:
         """
-        Display the contents of a file of any extension from currrent directory.
+        Display the contents of a file of any extension from current directory.
 
         Args:
             file_name (str): The name of the file from current directory to display. No path is allowed.
@@ -424,6 +428,8 @@ class GorillaFileSystem:
             matches (List[str]): A list of matching file and directory paths relative to the given path.
 
         """
+        if name == "None":
+            name = None
         matches = []
         # Navigate to the requested path first
         target_dir = self._navigate_to_directory(path)
@@ -756,8 +762,8 @@ class GorillaFileSystem:
             dest_item = self._current_dir._get_item(destination)
             if isinstance(dest_item, Directory):
                 # Copy source into the destination directory
-                new_destination = f"{destination}/{source}"
-                if new_destination in dest_item.contents:
+                # new_destination = f"{destination}/{source}"
+                if source in dest_item.contents:
                     return {
                         "error": f"cp: cannot copy '{source}' to '{destination}/{source}': File exists"
                     }

@@ -287,7 +287,7 @@ class VehicleControlAPI:
         self.fanSpeed = fanSpeed
         self.acMode = mode
         return {
-            "currentACTemperature": temperature,
+            "currentTemperature": self.acTemperature,
             "climateMode": mode,
             "humidityLevel": self.humidityLevel,
         }
@@ -298,10 +298,11 @@ class VehicleControlAPI:
         Returns:
             outsideTemperature (float): The outside temperature in degree Celsius.
         """
+        val = self._random.uniform(-10.0, 40.0)
         if self.long_context:
-            LONG_WEATHER_EXTENSION["outsideTemperature"] = self._random.uniform(-10.0, 40.0)
-            return LONG_WEATHER_EXTENSION
-        return {"outsideTemperature": self._random.uniform(-10.0, 40.0)}
+            LONG_WEATHER_EXTENSION["outsideTemperature"] = float(val)
+            return {"outsideTemperature": LONG_WEATHER_EXTENSION["outsideTemperature"]}
+        return {"outsideTemperature": float(val)}
 
     def get_outside_temperature_from_weather_com(self) -> Dict[str, float]:
         """
@@ -309,7 +310,7 @@ class VehicleControlAPI:
         Returns:
             outsideTemperature (float): The outside temperature in degree Celsius.
         """
-        return {"error": 404}
+        return {"error": "404"}
 
     def setHeadlights(self, mode: str) -> Dict[str, str]:
         """
@@ -357,7 +358,7 @@ class VehicleControlAPI:
         """
         status = {}
         if self.long_context:
-            status["metadata"] = CAR_STATUS_METADATA_EXTENSION
+            status["metadata"] = str(CAR_STATUS_METADATA_EXTENSION)
         if option == "fuel":
             status["fuelLevel"] = self.fuelLevel
         elif option == "battery":
@@ -382,7 +383,7 @@ class VehicleControlAPI:
             status["engineState"] = self.engine_state
         else:
             status["error"] = "Invalid option"
-        return status
+        return {"status": status}
 
     def activateParkingBrake(self, mode: str) -> Dict[str, Union[str, float]]:
         """
@@ -402,7 +403,7 @@ class VehicleControlAPI:
             self._slopeAngle = 10.0
             if self.long_context:
                 return {
-                    "parkingBrakeInstruction": PARKING_BRAKE_INSTRUCTION,
+                    # "parkingBrakeInstruction": PARKING_BRAKE_INSTRUCTION,
                     "parkingBrakeStatus": "engaged",
                     "_parkingBrakeForce": 500.0,
                     "_slopeAngle": 10.0,
@@ -414,7 +415,7 @@ class VehicleControlAPI:
             self._slopeAngle = 10.0
             if self.long_context:
                 return {
-                    "parkingBrakeInstruction": PARKING_BRAKE_INSTRUCTION,
+                    # "parkingBrakeInstruction": PARKING_BRAKE_INSTRUCTION,
                     "parkingBrakeStatus": "released",
                     "_parkingBrakeForce": 0.0,
                     "_slopeAngle": 10.0,
@@ -692,7 +693,7 @@ class VehicleControlAPI:
 
         if self.long_context:
             tire_status["car_info"] = CAR_STATUS_METADATA_EXTENSION
-        return tire_status
+        return {"tirePressure": tire_status}
 
     def find_nearest_tire_shop(self) -> Dict[str, str]:
         """
