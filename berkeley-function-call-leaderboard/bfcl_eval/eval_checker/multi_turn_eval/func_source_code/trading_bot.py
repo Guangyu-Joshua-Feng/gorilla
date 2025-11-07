@@ -553,15 +553,15 @@ class TradingBot:
             watchlist (List[str]): List of stock symbols in the watchlist.
         """
         if not self.authenticated:
-            return ["Error: User not authenticated. Please log in to view the watchlist."]
+            return {"error": "User not authenticated. Please log in to view the watchlist."}
 
         if self.long_context:
             watch_list = self.watch_list.copy()
             watch_list.extend(WATCH_LIST_EXTENSION)
-            return watch_list
+            return {"watchlist": watch_list} 
         return {"watchlist": self.watch_list}
 
-    def get_order_history(self) -> Dict[str, List[Dict[str, Union[str, int, float]]]]:
+    def get_order_history(self) -> Dict[str, List[int]]:
         """
         Get the stock order ID history.
 
@@ -569,11 +569,9 @@ class TradingBot:
             order_history (List[int]): List of orders ID in the order history.
         """
         if not self.authenticated:
-            return [
-                {"error": "User not authenticated. Please log in to view order history."}
-            ]
+            return {"error": "User not authenticated. Please log in to view order history."}
 
-        return {"history": list(self.orders.keys())}
+        return {"order_history": list(self.orders.keys())} 
 
     def get_transaction_history(
         self, start_date: Optional[str] = None, end_date: Optional[str] = None
@@ -592,11 +590,13 @@ class TradingBot:
                 - timestamp (str): Timestamp of the transaction, formatted as 'YYYY-MM-DD HH:MM:SS'.
         """
         if not self.authenticated:
-            return [
-                {
-                    "error": "User not authenticated. Please log in to view transaction history."
-                }
-            ]
+            return {"error": "User not authenticated. Please log in to view transaction history."}
+
+        if start_date == "None":
+            start_date = None
+        if end_date == "None":
+            end_date = None
+
 
         if start_date:
             start = datetime.strptime(start_date, "%Y-%m-%d")

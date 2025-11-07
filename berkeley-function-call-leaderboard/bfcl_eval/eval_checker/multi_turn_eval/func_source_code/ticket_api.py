@@ -78,7 +78,13 @@ class TicketAPI:
         }
         self.ticket_queue.append(ticket)
         self.ticket_counter += 1
-        return ticket
+        return {
+            "id": ticket["id"],
+            "title": ticket["title"],
+            "description": ticket["description"],
+            "status": ticket["status"],
+            "priority": ticket["priority"],
+        }
 
     def get_ticket(self, ticket_id: int) -> Dict[str, Union[int, str]]:
         """
@@ -229,9 +235,7 @@ class TicketAPI:
             return {"success": True}
         return {"success": False}
 
-    def get_user_tickets(
-        self, status: Optional[str] = None
-    ) -> List[Dict[str, Union[int, str]]]:
+    def get_user_tickets(self, status: Optional[str] = None) -> Dict[str, Union[List[Dict[str, Union[int, str]]], str]]:
         """
         Get all tickets created by the current user, optionally filtered by status.
 
@@ -247,7 +251,7 @@ class TicketAPI:
             created_by (str): Username of the ticket
         """
         if not self.current_user:
-            return [{"error": "User not authenticated. Please log in to view tickets."}]
+            return {"error": "User not authenticated. Please log in to view tickets."}
 
         user_tickets = [
             ticket
@@ -255,11 +259,23 @@ class TicketAPI:
             if ticket["created_by"] == self.current_user
         ]
 
-        if status:
+        if status is not None and status != "None":
             user_tickets = [
                 ticket
                 for ticket in user_tickets
                 if ticket["status"].lower() == status.lower()
             ]
 
-        return user_tickets
+        simplified = [
+            {
+                "id": ticket["id"],
+                "title": ticket["title"],
+                "description": ticket["description"],
+                "status": ticket["status"],
+                "priority": ticket["priority"],
+                "created_by": ticket["created_by"],  
+            }   
+            for ticket in user_tickets
+        ]
+
+        return {"tickets": simplified}

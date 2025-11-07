@@ -1,7 +1,7 @@
 import os
 import random
 import time
-from typing import Optional
+from typing import Optional, Dict
 from urllib.parse import urlparse
 
 import html2text
@@ -209,7 +209,7 @@ class WebSearchAPI:
 
         return results
 
-    def fetch_url_content(self, url: str, mode: str = "raw") -> str:
+    def fetch_url_content(self, url: str, mode: str = "raw") -> Dict[str, str]:
         """
         This function retrieves content from the provided URL and processes it based on the selected mode.
 
